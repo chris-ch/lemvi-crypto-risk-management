@@ -2,6 +2,7 @@ import datetime
 import logging
 import os
 import sys
+import pandas
 from datetime import datetime, date, timedelta
 from enum import Enum
 from typing import Tuple, Iterable, Dict, Any
@@ -21,8 +22,10 @@ def main():
     api_access_key = assert_env('BITMEX_API_ACCESS_KEY')
     api_secret_key = assert_env('BITMEX_API_SECRET_KEY')
     client = bitmex.bitmex(test=False, api_key=api_access_key, api_secret=api_secret_key)
-    results = client.Trade.Trade_get().result()
-    print(results)
+    results, status = client.Trade.Trade_get().result()
+    print('status:', status)
+    df = pandas.DataFrame(results)
+    print(df.to_json())
 
 
 if __name__ == '__main__':

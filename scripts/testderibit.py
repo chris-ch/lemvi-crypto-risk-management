@@ -6,6 +6,8 @@ from datetime import datetime, date, timedelta
 from enum import Enum
 from typing import Tuple, Iterable, Dict, Any
 
+import pandas
+
 import deribit
 from deribit import PublicApi, PrivateApi
 
@@ -65,9 +67,9 @@ def exec_requests(private_api: PrivateApi, public_api: PublicApi):
     last_day_prev_month = first_day_current_month - timedelta(days=1)
     first_day_prev_month = last_day_prev_month.replace(day=1)
     trades = load_trades(private_api, DeribitCurrency.BTC, first_day_prev_month, last_day_prev_month)
-    print(len(trades), trades)
-    for trade in trades:
-        print(trade)
+    print(trades)
+    df = pandas.DataFrame(trades)
+    print(df.to_json())
 
 
 def assert_env(env_name: str) -> str:
