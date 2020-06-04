@@ -19,14 +19,11 @@ def assert_env(env_name: str) -> str:
 
 
 def main():
-    api_access_key = assert_env('BITMEX_API_ACCESS_KEY')
-    api_secret_key = assert_env('BITMEX_API_SECRET_KEY')
-    client = bitmex.bitmex(test=False, api_key=api_access_key, api_secret=api_secret_key)
-    results, status = client.Trade.Trade_get().result()
-    print('status:', status)
-    print(results)
-    df = pandas.DataFrame(results)
-    print(df.to_json())
+    df_bitmex = pandas.read_json('../resources/bitmex-trades.json')
+    df_deribit = pandas.read_json('../resources/deribit-trades.json')
+    pandas.options.display.width = 0
+    print(df_bitmex)
+    print(df_deribit)
 
 
 if __name__ == '__main__':

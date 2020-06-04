@@ -90,7 +90,7 @@ def main():
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO, format='%(asctime)s:%(name)s:%(levelname)s:%(message)s')
     log_name = os.path.abspath(sys.argv[0]).split(os.sep)[-1].split('.')[0]
-    file_handler = logging.FileHandler(log_name + '.log', mode='w')
+    file_handler = logging.FileHandler('../logs/' + log_name + '.log', mode='w')
     formatter = logging.Formatter('%(asctime)s:%(name)s:%(levelname)s:%(message)s')
     file_handler.setFormatter(formatter)
     logging.getLogger().addHandler(file_handler)
