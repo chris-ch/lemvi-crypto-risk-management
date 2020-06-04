@@ -72,6 +72,18 @@ def exec_requests(private_api: PrivateApi, public_api: PublicApi):
     print(df.to_json())
 
 
+def load_positions(private_api):
+    retrieve_positions_func = private_api.private_get_positions_get
+
+    btc_positions = retrieve_positions_func(currency='BTC')['result']
+    eth_positions = retrieve_positions_func(currency='ETH')['result']
+    for position in btc_positions:
+        print(position)
+
+    for position in eth_positions:
+        print(position)
+
+
 def assert_env(env_name: str) -> str:
     env_value = os.getenv(env_name)
     if not env_value:
@@ -84,7 +96,8 @@ def main():
     api_access_key = assert_env('DERIBIT_API_ACCESS_KEY')
     api_secret_key = assert_env('DERIBIT_API_SECRET_KEY')
     private_api, public_api = authenticate(api_access_key, api_secret_key)
-    exec_requests(private_api, public_api)
+    #exec_requests(private_api, public_api)
+    load_positions(private_api)
 
 
 if __name__ == '__main__':
