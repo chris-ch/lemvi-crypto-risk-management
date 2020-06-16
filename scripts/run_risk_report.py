@@ -36,8 +36,11 @@ def main():
     api_secret_key = assert_env('DERIBIT_API_SECRET_KEY')
     deribit_private, deribit_public = agg.deribit_client(api_access_key, api_secret_key)
 
-    deribit_account = agg.deribit_account_summary(deribit_private)
-    print(deribit_account)
+    deribit_account_btc = agg.deribit_account_summary(deribit_private, currency=agg.DeribitCurrency.BTC)
+    print(deribit_account_btc)
+
+    deribit_account_eth = agg.deribit_account_summary(deribit_private, currency=agg.DeribitCurrency.ETH)
+    print(deribit_account_eth)
 
     positions = list(agg.deribit_load_positions(deribit_private))
 

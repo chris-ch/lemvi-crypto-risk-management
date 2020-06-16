@@ -145,7 +145,7 @@ def deribit_load_positions(private_api) -> Generator[Dict[str, Any], None, None]
         yield position
 
 
-def deribit_account_summary(private_api) -> Dict[str, Any]:
+def deribit_account_summary(private_api, currency: DeribitCurrency) -> Dict[str, Any]:
     retrieve_account_summary_func = private_api.private_get_account_summary_get
-    summary = retrieve_account_summary_func(currency='BTC')['result']
+    summary = retrieve_account_summary_func(currency=currency.value)['result']
     return summary
