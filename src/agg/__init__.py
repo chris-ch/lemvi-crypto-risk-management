@@ -133,7 +133,7 @@ def deribit_exec_requests(private_api: PrivateApi, public_api: PublicApi):
     print(df.to_json())
 
 
-def deribit_load_positions(private_api):
+def deribit_load_positions(private_api) -> Generator[Dict[str, Any], None, None]:
     retrieve_positions_func = private_api.private_get_positions_get
 
     btc_positions = retrieve_positions_func(currency='BTC')['result']
@@ -143,3 +143,9 @@ def deribit_load_positions(private_api):
     eth_positions = retrieve_positions_func(currency='ETH')['result']
     for position in eth_positions:
         yield position
+
+
+def deribit_account_summary(private_api) -> Dict[str, Any]:
+    retrieve_account_summary_func = private_api.private_get_account_summary_get
+    summary = retrieve_account_summary_func(currency='BTC')['result']
+    return summary

@@ -27,18 +27,17 @@ def main():
     api_secret_key = assert_env('BITMEX_API_SECRET_KEY')
     bitmex_client = agg.bitmex_client(api_access_key, api_secret_key)
 
-    df_bitmex = pandas.DataFrame(list(agg.bitmex_load_positions(bitmex_client)))
-    print(df_bitmex)
-    df_bitmex.to_excel('../resources/bitmex_pos.xlsx')
-
     ratios = riskratios.report(bitmex_client)
     print(ratios)
-    return
-    print ('...........')
+
+    print('...........')
 
     api_access_key = assert_env('DERIBIT_API_ACCESS_KEY')
     api_secret_key = assert_env('DERIBIT_API_SECRET_KEY')
     deribit_private, deribit_public = agg.deribit_client(api_access_key, api_secret_key)
+
+    deribit_account = agg.deribit_account_summary(deribit_private)
+    print(deribit_account)
 
     positions = list(agg.deribit_load_positions(deribit_private))
 

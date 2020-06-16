@@ -16,9 +16,6 @@ def bitmex_ratio_time_before_expiry(bitmex_instruments_data, as_of_date: datetim
     for symbol in bitmex_instruments_data:
         instrument = bitmex_instruments_data[symbol]
         if instrument['expiry']:
-            print(instrument['expiry'])
-            print(instrument['expiry'] - timedelta(days=notice_period_days))
-            print(as_of_date)
             within_notice_period = instrument['expiry'] - timedelta(days=notice_period_days) <= as_of_date
             if within_notice_period:
                 should_roll_instruments.append({'symbol': symbol, 'expiry': instrument['expiry']})
