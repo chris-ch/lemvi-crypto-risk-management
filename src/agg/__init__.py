@@ -3,6 +3,7 @@ from datetime import datetime, date, timedelta
 import json
 from enum import Enum
 from functools import lru_cache
+from time import sleep
 from typing import Dict, Any, Iterable, Tuple, Generator
 
 import bitmex
@@ -50,6 +51,41 @@ def bitmex_load_instrument(client: SwaggerClient, symbol: str) -> Dict[str, Any]
 
     else:
         return dict()
+
+
+def bitmex_load_transactions(client: SwaggerClient, symbol: str, start_day: date, end_day: date) -> Dict[str, Any]:
+    current_day = start_day
+    while current_day <= end_day:
+        start_date = datetime.combine(current_day, datetime.min.time())
+        end_date = datetime.combine(current_day, datetime.max.time())
+        logging.info('querying trades from {} to {}'.format(start_date, end_date))
+        results_count = 1000
+        results, status = client.Trade.Trade_getBucketed(binSize='5m', symbol=symbol, count=results_count, startTime=start_date, endTime=end_date, start=0).result()
+        sleep(2)
+
+        if status.status_code not in (200, 201):
+            raise ConnectionError('failed to load trades: %s %s %s' % (status.status_code, status.text, status.reason))
+
+        count = 0
+        for result in results:
+            count += 1
+            yield result
+
+        while len(results) == results_count:
+            results, status = client.Trade.Trade_getBucketed(binSize='5m', symbol=symbol, count=results_count, startTime=start_date, endTime=end_date, start=count).result()
+
+            if status.status_code not in (200, 201):
+                raise ConnectionError('failed to load trades: %s %s %s' % (status.status_code, status.text, status.reason))
+
+            sleep(2)
+            for result in results:
+                count += 1
+                yield result
+
+            if len(results) != results_count:
+                logging.info('queried {} results, obtained {}'.format(results_count, len(results)))
+
+        current_day = current_day + timedelta(days=1)
 
 
 def bitmex_load_trades(client: SwaggerClient, start_date: datetime, end_date: datetime):

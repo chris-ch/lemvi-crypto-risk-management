@@ -1,8 +1,10 @@
-import datetime
 import logging
 import os
 import sys
-from datetime import datetime
+from datetime import date
+
+import pandas
+
 import agg
 
 
@@ -18,16 +20,11 @@ def main():
     api_access_key = assert_env('BITMEX_API_ACCESS_KEY')
     api_secret_key = assert_env('BITMEX_API_SECRET_KEY')
     client = agg.bitmex_client(api_access_key, api_secret_key)
-    #results, status = client.Trade.Trade_get().result()
-    #results, status = bitmex_load(client.Position.Position_get)
-    start_date = datetime(2020, 1, 1)
-    end_date = datetime(2020, 2, 1)
-    for result in agg.bitmex_load_positions(client):
-        print(result)
-
-    #df = pandas.DataFrame(results)
-    #print(df.to_json())
-    pass
+    start_date = date(2020, 6, 9)
+    end_date = date(2020, 10, 1)
+    results = list(agg.bitmex_load_transactions(client, 'XBT', start_date, end_date))
+    df = pandas.DataFrame(results)
+    df.to_json('trades-xbt.json', orient='records', date_format='iso')
 
 
 if __name__ == '__main__':
