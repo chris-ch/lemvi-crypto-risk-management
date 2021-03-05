@@ -2,12 +2,10 @@ import logging
 from datetime import datetime, date, timedelta
 import json
 from enum import Enum
-from functools import lru_cache
 from time import sleep
 from typing import Dict, Any, Iterable, Tuple, Generator
 
 import bitmex
-import pandas
 from bravado.client import SwaggerClient
 
 import deribit
