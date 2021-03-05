@@ -1,6 +1,7 @@
 import json
 import os
 from datetime import date
+from typing import Any
 
 import agg
 
@@ -13,6 +14,27 @@ def assert_env(env_name: str) -> str:
     return env_value
 
 
+def assert_input(env_name: str, request_json: Any, input_default: Any=None) -> str:
+    if env_name not in request_json and input_default is None:
+        raise AttributeError('missing input field: "{}"'.format(env_name))
+
+    if env_name not in request_json and input_default is not None:
+        return input_default
+
+    return request_json[env_name]
+
+
+def parse_date(yyyymmdd: str) -> date:
+    if len(yyyymmdd) == 8:
+        year = yyyymmdd[:4]
+        month = yyyymmdd[4:6]
+        day = yyyymmdd[6:8]
+    else:
+        year, month, day = yyyymmdd.split('-')[:3]
+
+    return date(int(year), int(month), int(day))
+
+
 def load_bitmex_transactions(request):
     """Responds to any HTTP request.
     Args:
@@ -23,15 +45,11 @@ def load_bitmex_transactions(request):
         `make_response <https://flask.palletsprojects.com/en/1.1.x/api/#flask.Flask.make_response>`.
     """
     request_json = request.get_json()
-    if request.args and 'message' in request.args:
-        return request.args.get('message')
-    elif request_json and 'message' in request_json:
-        return request_json['message']
-    else:
-        api_access_key = assert_env('BITMEX_API_ACCESS_KEY')
-        api_secret_key = assert_env('BITMEX_API_SECRET_KEY')
-        client = agg.bitmex_client(api_access_key, api_secret_key)
-        start_date = date(2020, 6, 9)
-        end_date = date(2020, 10, 1)
-        results = list(agg.bitmex_load_transactions(client, 'XBT', start_date, end_date))
-        return json.dumps(results)
+    start_date = parse_date(assert_input('start_date', request_json))
+    end_date = parse_date(assert_input('end_date', request_json))
+    symbol = assert_input('symbol', request_json, 'XBT')
+    api_access_key = assert_env('BITMEX_API_ACCESS_KEY')
+    api_secret_key = assert_env('BITMEX_API_SECRET_KEY')
+    client = agg.bitmex_client(api_access_key, api_secret_key)
+    results = list(agg.bitmex_load_transactions(client, symbol, start_date, end_date))
+    return json.dumps(results)

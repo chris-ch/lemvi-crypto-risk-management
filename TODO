@@ -1,0 +1,2 @@
+- encapsulate with flask for GC compatibility
+- use secret in GC
