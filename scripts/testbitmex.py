@@ -3,8 +3,6 @@ import os
 import sys
 from datetime import date
 
-import pandas
-
 import agg
 
 
@@ -23,8 +21,7 @@ def main():
     start_date = date(2020, 6, 9)
     end_date = date(2020, 10, 1)
     results = list(agg.bitmex_load_transactions(client, 'XBT', start_date, end_date))
-    df = pandas.DataFrame(results)
-    df.to_json('trades-xbt.json', orient='records', date_format='iso')
+    print(results)
 
 
 if __name__ == '__main__':

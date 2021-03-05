@@ -1,14 +1,6 @@
-import datetime
 import logging
 import os
 import sys
-import pandas
-from datetime import datetime, date, timedelta
-from enum import Enum
-from typing import Tuple, Iterable, Dict, Any
-
-import bitmex
-
 import agg
 from agg import riskratios
 
@@ -22,7 +14,6 @@ def assert_env(env_name: str) -> str:
 
 
 def main():
-    pandas.options.display.width = 0
     api_access_key = assert_env('BITMEX_API_ACCESS_KEY')
     api_secret_key = assert_env('BITMEX_API_SECRET_KEY')
     bitmex_client = agg.bitmex_client(api_access_key, api_secret_key)
@@ -43,14 +34,7 @@ def main():
     print(deribit_account_eth)
 
     positions = list(agg.deribit_load_positions(deribit_private))
-
-    df_deribit_fut = pandas.DataFrame((position for position in positions if position['kind'] == 'future'))
-    df_deribit_fut.to_excel('../resources/deribit_fut_pos.xlsx')
-    print(df_deribit_fut)
-
-    df_deribit_opt = pandas.DataFrame((position for position in positions if position['kind'] == 'option'))
-    df_deribit_opt.to_excel('../resources/deribit_opt_pos.xlsx')
-    print(df_deribit_opt)
+    print(positions)
 
     return
 
