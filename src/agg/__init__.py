@@ -39,10 +39,75 @@ def bitmex_load_positions(client: SwaggerClient) -> Generator[Dict[str, Any], No
         yield {k: v for k, v in result.items() if k in columns}
 
 
+def bitmex_load_wallet_history(client: SwaggerClient, since_date: date=None) -> Generator[Dict[str, Any], None, None]:
+    """
+    Loads most recent wallet operations.
+    :param client:
+    :param since_date: if None loads the whole history
+    :return:
+    """
+    results_count = 100
+    results_start = 0
+
+    is_more_to_load = True
+    while is_more_to_load:
+        results, status = client.User.User_getWalletHistory(count=results_count, start=results_start).result()
+        if status.status_code not in (200, 201):
+            raise ConnectionError('failed to load wallet history: %s %s %s' % (status.status_code, status.text, status.reason))
+
+        for result in results:
+            if result['transactID'] == '00000000-0000-0000-0000-000000000000':
+                # ignores scheduled transactions
+                continue
+
+            if not since_date or result['transactTime'] >= datetime.combine(since_date, datetime.min.time(), tzinfo=result['transactTime'].tzinfo):
+                yield result
+
+            else:
+                is_more_to_load = False
+
+        if len(results) == results_count:
+            # there may be more to load
+            results_start += results_count
+
+        else:
+            is_more_to_load = False
+
+
+def bitmex_load_orders(client: SwaggerClient, since_date: date=None) -> Generator[Dict[str, Any], None, None]:
+    """
+    Loads most recent trades.
+    :param client:
+    :param since_date: if None loads the whole history
+    :return:
+    """
+    results_count = 100
+    results_start = 0
+    is_more_to_load = True
+    while is_more_to_load:
+        results, status = client.Order.Order_getOrders(count=results_count, start=results_start, reverse=False).result()
+        if status.status_code not in (200, 201):
+            raise ConnectionError('failed to load wallet history: %s %s %s' % (status.status_code, status.text, status.reason))
+
+        for result in results:
+            if not since_date or result['transactTime'] >= datetime.combine(since_date, datetime.min.time(), tzinfo=result['transactTime'].tzinfo):
+                yield result
+
+            else:
+                is_more_to_load = False
+
+        if len(results) == results_count:
+            # there may be more to load
+            results_start += results_count
+
+        else:
+            is_more_to_load = False
+
+
 def bitmex_load_instrument(client: SwaggerClient, symbol: str) -> Dict[str, Any]:
     results, status = client.Instrument.Instrument_get(symbol=symbol, count=1).result()
     if status.status_code not in (200, 201):
-        raise ConnectionError('failed to load trades: %s %s %s' % (status.status_code, status.text, status.reason))
+        raise ConnectionError('failed to load instrument: %s %s %s' % (status.status_code, status.text, status.reason))
 
     if len(results) > 0:
         return results[0]
@@ -51,7 +116,7 @@ def bitmex_load_instrument(client: SwaggerClient, symbol: str) -> Dict[str, Any]
         return dict()
 
 
-def bitmex_load_transactions(client: SwaggerClient, symbol: str, start_day: date, end_day: date) -> Dict[str, Any]:
+def bitmex_load_market_trades_bucketed(client: SwaggerClient, symbol: str, start_day: date, end_day: date) -> Dict[str, Any]:
     current_day = start_day
     while current_day <= end_day:
         start_date = datetime.combine(current_day, datetime.min.time())
@@ -86,7 +151,7 @@ def bitmex_load_transactions(client: SwaggerClient, symbol: str, start_day: date
         current_day = current_day + timedelta(days=1)
 
 
-def bitmex_load_trades(client: SwaggerClient, start_date: datetime, end_date: datetime):
+def bitmex_load_market_trades_history(client: SwaggerClient, start_date: datetime, end_date: datetime):
     results_count = 100
     count = 0
     results, status = client.Execution.Execution_getTradeHistory(count=results_count, startTime=start_date, endTime=end_date, start=0).result()
@@ -163,8 +228,6 @@ def deribit_exec_requests(private_api: PrivateApi, public_api: PublicApi):
     first_day_prev_month = last_day_prev_month.replace(day=1)
     trades = deribit_load_trades(private_api, DeribitCurrency.BTC, first_day_prev_month, last_day_prev_month)
     print(trades)
-    df = pandas.DataFrame(trades)
-    print(df.to_json())
 
 
 def deribit_load_positions(private_api) -> Generator[Dict[str, Any], None, None]:
