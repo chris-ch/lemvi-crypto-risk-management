@@ -64,7 +64,7 @@ def load_bitmex_wallet_data(request: flask.Request):
     api_secret_key = assert_env('BITMEX_API_SECRET_KEY')
     client = agg.bitmex_client(api_access_key, api_secret_key)
     results = list(agg.bitmex_load_wallet_history(client, since_date))
-    return json.dumps(results, default=json_serial)
+    return flask.jsonify(results) #json.dumps(results, default=json_serial)
 
 
 def load_bitmex_orders_data(request: flask.Request):
@@ -86,4 +86,4 @@ def load_bitmex_orders_data(request: flask.Request):
     api_secret_key = assert_env('BITMEX_API_SECRET_KEY')
     client = agg.bitmex_client(api_access_key, api_secret_key)
     results = list(agg.bitmex_load_orders(client, since_date))
-    return json.dumps(results, default=json_serial)
+    return results #json.dumps(results, default=json_serial)
