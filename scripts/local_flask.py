@@ -1,27 +1,27 @@
-from datetime import date, datetime
-
+from logging.config import dictConfig
 from flask import Flask
 from flask import request
-from flask.json import JSONEncoder
 
 import entrypoints
 
 
-# class CustomJSONEncoder(JSONEncoder):
-#     def default(self, obj):
-#         try:
-#             if isinstance(obj, date) or isinstance(obj, datetime):
-#                 return obj.isoformat()
-#             iterable = iter(obj)
-#         except TypeError:
-#             pass
-#         else:
-#             return list(iterable)
-#         return JSONEncoder.default(self, obj)
-
+dictConfig({
+    'version': 1,
+    'formatters': {'default': {
+        'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
+    }},
+    'handlers': {'wsgi': {
+        'class': 'logging.StreamHandler',
+        'stream': 'ext://flask.logging.wsgi_errors_stream',
+        'formatter': 'default'
+    }},
+    'root': {
+        'level': 'INFO',
+        'handlers': ['wsgi']
+    }
+})
 
 app = Flask(__name__)
-# app.json_encoder = CustomJSONEncoder
 
 
 @app.route('/orders-data', methods=['POST'])
