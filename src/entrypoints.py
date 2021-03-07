@@ -3,6 +3,8 @@ from datetime import date, datetime
 from typing import Any
 
 import flask
+from flask import current_app
+from flask.json import JSONEncoder
 
 import agg
 
@@ -60,7 +62,7 @@ def load_bitmex_wallet_data(request: flask.Request):
     api_secret_key = assert_env('BITMEX_API_SECRET_KEY')
     client = agg.bitmex_client(api_access_key, api_secret_key)
     results = list(agg.bitmex_load_wallet_history(client, since_date))
-    return flask.jsonify(results)
+    return jsonify(results)
 
 
 def load_bitmex_orders_data(request: flask.Request):
@@ -79,4 +81,22 @@ def load_bitmex_orders_data(request: flask.Request):
     api_secret_key = assert_env('BITMEX_API_SECRET_KEY')
     client = agg.bitmex_client(api_access_key, api_secret_key)
     results = list(agg.bitmex_load_orders(client, since_date))
-    return flask.jsonify(results)
+    return jsonify(results)
+
+
+class CustomJSONEncoder(JSONEncoder):
+    def default(self, obj):
+        try:
+            if isinstance(obj, date) or isinstance(obj, datetime):
+                return obj.isoformat()
+            iterable = iter(obj)
+        except TypeError:
+            pass
+        else:
+            return list(iterable)
+        return JSONEncoder.default(self, obj)
+
+
+def jsonify(items):
+    current_app.json_encoder = CustomJSONEncoder
+    return flask.jsonify(items)

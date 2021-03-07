@@ -1,4 +1,5 @@
 - use secrets in GC
+- add Sub trigger
 - store orders with Cloud Storage
 - extend to Deribit
 - extend to OKex
