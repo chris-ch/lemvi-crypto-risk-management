@@ -1,4 +1,3 @@
-import json
 import os
 from datetime import date, datetime
 from typing import Any
@@ -16,14 +15,14 @@ def assert_env(env_name: str) -> str:
     return env_value
 
 
-def assert_input(env_name: str, request_json: Any, input_default: Any=None) -> str:
-    if env_name not in request_json and input_default is None:
-        raise AttributeError('missing input field: "{}"'.format(env_name))
+def assert_input(input_name: str, request_json: Any, input_default: Any=None) -> str:
+    if input_name not in request_json and input_default is None:
+        raise AttributeError('missing input field: "{}"'.format(input_name))
 
-    if env_name not in request_json and input_default is not None:
+    if input_name not in request_json and input_default is not None:
         return input_default
 
-    return request_json[env_name]
+    return request_json[input_name]
 
 
 def parse_date(yyyymmdd: str) -> date:
@@ -48,11 +47,8 @@ def json_serial(obj):
 def load_bitmex_wallet_data(request: flask.Request):
     """Responds to any HTTP request.
     Example message {"since_date": "2021-01-04"}
-    Args:
-        request (flask.Request): HTTP request object.
     Returns:
-        The response text or any set of values that can be turned into a
-        Response object using
+        The response text or any set of values that can be turned into a Response object using
         `make_response <https://flask.palletsprojects.com/en/1.1.x/api/#flask.Flask.make_response>`.
     """
     request_json = request.get_json()
@@ -64,17 +60,14 @@ def load_bitmex_wallet_data(request: flask.Request):
     api_secret_key = assert_env('BITMEX_API_SECRET_KEY')
     client = agg.bitmex_client(api_access_key, api_secret_key)
     results = list(agg.bitmex_load_wallet_history(client, since_date))
-    return flask.jsonify(results) #json.dumps(results, default=json_serial)
+    return flask.jsonify(results)
 
 
 def load_bitmex_orders_data(request: flask.Request):
     """Responds to any HTTP request.
     Example message {"since_date": "2021-01-04"}
-    Args:
-        request (flask.Request): HTTP request object.
     Returns:
-        The response text or any set of values that can be turned into a
-        Response object using
+        The response text or any set of values that can be turned into a Response object using
         `make_response <https://flask.palletsprojects.com/en/1.1.x/api/#flask.Flask.make_response>`.
     """
     request_json = request.get_json()
@@ -86,4 +79,4 @@ def load_bitmex_orders_data(request: flask.Request):
     api_secret_key = assert_env('BITMEX_API_SECRET_KEY')
     client = agg.bitmex_client(api_access_key, api_secret_key)
     results = list(agg.bitmex_load_orders(client, since_date))
-    return results #json.dumps(results, default=json_serial)
+    return flask.jsonify(results)
