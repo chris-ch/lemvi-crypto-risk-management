@@ -26,4 +26,4 @@ app.json_encoder = CustomJSONEncoder
 
 @app.route('/orders-data', methods=['POST'])
 def orders_data():
-    return jsonify(entrypoints.load_bitmex_orders_data(request))
+    return entrypoints.load_bitmex_orders_data(request)

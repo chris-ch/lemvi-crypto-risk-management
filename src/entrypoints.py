@@ -53,7 +53,7 @@ def load_bitmex_wallet_data(request: flask.Request):
     """
     request_json = request.get_json()
     since_date = None
-    if 'since_date' in request_json:
+    if 'since-date' in request_json:
         since_date = parse_date(request_json[since_date])
 
     api_access_key = assert_env('BITMEX_API_ACCESS_KEY')
@@ -72,7 +72,7 @@ def load_bitmex_orders_data(request: flask.Request):
     """
     request_json = request.get_json()
     since_date = None
-    if 'since_date' in request_json:
+    if 'since-date' in request_json:
         since_date = parse_date(request_json[since_date])
 
     api_access_key = assert_env('BITMEX_API_ACCESS_KEY')
