@@ -1,3 +1,11 @@
+POST http://127.0.0.1:5000/wallet-data
+Content-Type: application/json
+
+{
+  "since-date": "2021-01-01"
+}
+
+###
 POST http://127.0.0.1:5000/orders-data
 Content-Type: application/json
 

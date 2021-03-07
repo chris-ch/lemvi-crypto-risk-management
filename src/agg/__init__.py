@@ -85,7 +85,7 @@ def bitmex_load_orders(client: SwaggerClient, since_date: date=None) -> Generato
     results_start = 0
     is_more_to_load = True
     while is_more_to_load:
-        results, status = client.Order.Order_getOrders(count=results_count, start=results_start, reverse=False).result()
+        results, status = client.Order.Order_getOrders(count=results_count, start=results_start, reverse=True).result()
         if status.status_code not in (200, 201):
             raise ConnectionError('failed to load wallet history: %s %s %s' % (status.status_code, status.text, status.reason))
 

@@ -1,4 +1,6 @@
-- encapsulate with flask for GC compatibility
-- use secret in GC
-- load and store orders
+- use secrets in GC
+- store orders with Cloud Storage
+- extend to Deribit
+- extend to OKex
+
 

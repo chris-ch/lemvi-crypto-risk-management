@@ -24,6 +24,12 @@ class CustomJSONEncoder(JSONEncoder):
 app = Flask(__name__)
 app.json_encoder = CustomJSONEncoder
 
+
 @app.route('/orders-data', methods=['POST'])
 def orders_data():
     return entrypoints.load_bitmex_orders_data(request)
+
+
+@app.route('/wallet-data', methods=['POST'])
+def wallet_data():
+    return entrypoints.load_bitmex_wallet_data(request)
