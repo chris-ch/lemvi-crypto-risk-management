@@ -73,7 +73,7 @@ def load_bitmex_wallet_data(request: flask.Request):
         print(result)
         count += 1
         filename = create_transaction_filename(result['transactID'], 'bitmex', result['transactTime'], result['account'], result['currency'], result['address'], result['transactType'], result['transactStatus'])
-        future = publisher.publish(topic_path, json.dumps({'filename': filename, 'data': result}, default=json_serial), origin='load_bitmex_wallet_data')
+        future = publisher.publish(topic_path, json.dumps({'filename': filename, 'data': result}, default=json_serial).encode('utf-8'), origin='load_bitmex_wallet_data')
         future.result()
 
     return flask.jsonify(count=count)
@@ -104,7 +104,7 @@ def load_bitmex_orders_data(request: flask.Request):
     for result in results:
         count += 1
         filename = create_order_filename(result['orderID'], 'bitmex', result['transactTime'], result['account'], result['symbol'], result['side'], result['currency'], result['settlCurrency'], result['ordStatus'])
-        future = publisher.publish(topic_path, json.dumps({'filename': filename, 'data': result}, default=json_serial), origin='load_bitmex_orders_data')
+        future = publisher.publish(topic_path, json.dumps({'filename': filename, 'data': result}, default=json_serial).encode('utf-8'), origin='load_bitmex_orders_data')
         future.result()
 
     return flask.jsonify(count=count)

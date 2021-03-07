@@ -9,6 +9,8 @@ Following environment variables are required:
 - DERIBIT_API_SECRET_KEY, DERIBIT_API_ACCESS_KEY
 - OKEX_API_SECRET_KEY, OKEX_API_ACCESS_KEY
 
+- GOOGLE_CLOUD_PROJECT also on GCE environment
+
 ## Topic Ids
 - job-order-data-import
 - job-wallet-data-import
