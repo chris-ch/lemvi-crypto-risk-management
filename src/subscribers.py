@@ -37,7 +37,7 @@ def store_file(event: Dict, context):
     kind = message[FieldStoreFile.KIND.value]
     exchange = message[FieldStoreFile.EXCHANGE.value]
 
-    client = datastore.Client(namespace)
+    client = datastore.Client(namespace=namespace)
     entity = datastore.Entity(key=client.key(FieldStoreFile.KIND.value, kind, FieldStoreFile.EXCHANGE.value, exchange, FieldStoreFile.FILENAME.value, filename))
     entity.update(content)
     client.put(entity)

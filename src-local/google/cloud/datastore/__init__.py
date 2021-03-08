@@ -10,7 +10,7 @@ class Entity(object):
 
 
 class Client(object):
-    def __init__(self, name):
+    def __init__(self, *args, **kwargs):
         pass
 
     def key(self, *args):
