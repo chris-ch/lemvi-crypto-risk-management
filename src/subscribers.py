@@ -1,6 +1,6 @@
 import json
 import base64
-import logging
+from google.cloud import logging
 
 from typing import Dict
 
@@ -27,9 +27,12 @@ def store_file(event: Dict, context):
          metadata. The `event_id` field contains the Pub/Sub message ID. The
          `timestamp` field contains the publish time.
     """
+    logging_client = logging.Client()
+    logger = logging_client.logger('store_file')
     if "data" not in event:
         return
 
+    logger.log_text('loading message')
     message = json.loads(base64.b64decode(event["data"]).decode('utf-8'))
 
     filename = message[FieldStoreFile.FILENAME.value]
@@ -45,4 +48,4 @@ def store_file(event: Dict, context):
         entity.update(content)
         client.put(entity)
 
-    logging.info('saved entity using key {}={}/{}={}/{}={}'.format(FieldStoreFile.SOURCE.value, source, FieldStoreFile.EXCHANGE.value, exchange, FieldStoreFile.FILENAME.value, filename))
+    logger.log_text('saved entity using key {}={}/{}={}/{}={}'.format(FieldStoreFile.SOURCE.value, source, FieldStoreFile.EXCHANGE.value, exchange, FieldStoreFile.FILENAME.value, filename))
