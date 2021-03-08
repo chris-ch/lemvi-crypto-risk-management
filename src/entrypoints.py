@@ -2,7 +2,7 @@ import json
 import os
 from google.cloud import pubsub_v1
 from datetime import date, datetime
-from typing import Any
+from typing import Any, Iterable, Dict
 
 import flask
 from flask import current_app
@@ -54,28 +54,11 @@ def load_bitmex_wallet_data(request: flask.Request):
     if 'since-date' in request_json:
         since_date = parse_date(request_json['since-date'])
 
-    bucket_name_portfolio = assert_env('BUCKET_NAME_PORTFOLIO')
     api_access_key = assert_env('BITMEX_API_ACCESS_KEY')
     api_secret_key = assert_env('BITMEX_API_SECRET_KEY')
-    google_cloud_project = assert_env('GOOGLE_CLOUD_PROJECT')
     client = agg.bitmex_client(api_access_key, api_secret_key)
     results = agg.bitmex_load_wallet_history(client, since_date)
-    count = 0
-    publisher = pubsub_v1.PublisherClient()
-    topic_path = publisher.topic_path(google_cloud_project, TopicId.JOB_WALLET_DATA_IMPORT.value)
-
-    for result in results:
-        print(result)
-        count += 1
-        filename = create_transaction_filename(result['transactID'], 'bitmex', result['transactTime'], result['account'], result['currency'], result['address'], result['transactType'], result['transactStatus'])
-        message = {
-            FieldStoreFile.FILENAME.value: filename,
-            FieldStoreFile.CONTENT.value: result,
-            FieldStoreFile.BUCKET_NAME.value: bucket_name_portfolio
-        }
-        future = publisher.publish(topic_path, json.dumps(message, default=json_serial).encode('utf-8'), origin='load_bitmex_wallet_data')
-        future.result()
-
+    count = store_results(results, 'bitmex', TopicId.JOB_WALLET_DATA_IMPORT.value, 'transactions', 'transactID', 'transactTime')
     return flask.jsonify(count=count)
 
 
@@ -91,39 +74,39 @@ def load_bitmex_orders_data(request: flask.Request):
     if 'since-date' in request_json:
         since_date = parse_date(request_json['since-date'])
 
-    bucket_name_portfolio = assert_env('BUCKET_NAME_PORTFOLIO')
     api_access_key = assert_env('BITMEX_API_ACCESS_KEY')
     api_secret_key = assert_env('BITMEX_API_SECRET_KEY')
-    google_cloud_project = assert_env('GOOGLE_CLOUD_PROJECT')
 
     client = agg.bitmex_client(api_access_key, api_secret_key)
     results = agg.bitmex_load_orders(client, since_date)
-    count = 0
-    publisher = pubsub_v1.PublisherClient()
-    topic_path = publisher.topic_path(google_cloud_project, TopicId.JOB_ORDER_DATA_IMPORT.value)
-
-    for result in results:
-        count += 1
-        filename = create_order_filename(result['orderID'], 'bitmex', result['transactTime'], result['account'], result['symbol'], result['side'], result['currency'], result['settlCurrency'], result['ordStatus'])
-        message = {
-            FieldStoreFile.FILENAME.value: filename,
-            FieldStoreFile.CONTENT.value: result,
-            FieldStoreFile.BUCKET_NAME.value: bucket_name_portfolio
-        }
-        future = publisher.publish(topic_path, json.dumps(message, default=json_serial).encode('utf-8'), origin='load_bitmex_orders_data')
-        future.result()
-
+    count = store_results(results, 'bitmex', TopicId.JOB_ORDER_DATA_IMPORT.value, 'orders', 'orderID', 'transactTime')
     return flask.jsonify(count=count)
 
 
-def create_order_filename(order_id: str, exchange: str, transact_time: datetime, account: str, symbol: str, buy_sell: str, currency: str, settlement_currency: str, order_status: str):
-    filename = '{}_{}_{}_{}_{}_{}_{}.json'.format(order_id, account, symbol, buy_sell, currency, settlement_currency, order_status)
-    return '/'.join(['orders', exchange, str(transact_time.year), str(transact_time.month).zfill(2), str(transact_time.day).zfill(2), filename])
+def store_results(results: Iterable[Dict], exchange: str, topic_id: str, kind: str, filename_part1: str, filename_part2: str):
+    google_cloud_project = assert_env('GOOGLE_CLOUD_PROJECT')
+    namespace_portfolio = assert_env('NAMESPACE_PORTFOLIO')
+    count = 0
+    publisher = pubsub_v1.PublisherClient()
+    topic_path = publisher.topic_path(google_cloud_project, topic_id)
+    for result in results:
+        count += 1
+        filename = create_filename(result[filename_part1], result[filename_part2])
+        message = {
+            FieldStoreFile.FILENAME.value: filename,
+            FieldStoreFile.CONTENT.value: result,
+            FieldStoreFile.NAMESPACE.value: namespace_portfolio,
+            FieldStoreFile.KIND.value: kind,
+            FieldStoreFile.EXCHANGE.value: exchange
+        }
+        future = publisher.publish(topic_path, json.dumps(message, default=json_serial).encode('utf-8'), origin='load_bitmex_data')
+        future.result()
+    return count
 
 
-def create_transaction_filename(transaction_id: str, exchange: str, transact_time: datetime, account: str, currency: str, address: str, transaction_type: str, transaction_status: str):
-    filename = '{}_{}_{}_{}_{}_{}.json'.format(transaction_id, account, currency, address, transaction_type, transaction_status)
-    return '/'.join(['wallet', exchange, str(transact_time.year), str(transact_time.month).zfill(2), str(transact_time.day).zfill(2), filename])
+def create_filename(transaction_id: str, transact_time: datetime):
+    filename = '{}_{}.json'.format(transact_time.date().isoformat(), transaction_id)
+    return filename
 
 
 class CustomJSONEncoder(JSONEncoder):

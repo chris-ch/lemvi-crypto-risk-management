@@ -4,6 +4,7 @@
 - extend to Deribit
 - extend to OKex
 - check dev mode for Google Cloud
+- export GC project using terraformer
 
 Done:
 - add Sub trigger

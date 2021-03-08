@@ -4,7 +4,9 @@ from enum import Enum
 class FieldStoreFile(Enum):
     FILENAME = 'filename'
     CONTENT = 'content'
-    BUCKET_NAME = 'bucket-name'
+    NAMESPACE = 'namespace'
+    KIND = 'kind'
+    EXCHANGE = 'exchange'
 
 
 class TopicId(Enum):

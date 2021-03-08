@@ -1,0 +1,2 @@
+class Key(object):
+    pass

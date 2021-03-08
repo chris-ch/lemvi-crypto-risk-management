@@ -10,7 +10,7 @@ Following environment variables are required:
 - OKEX_API_SECRET_KEY, OKEX_API_ACCESS_KEY
 
 - GOOGLE_CLOUD_PROJECT (including on GCE environment)
-- BUCKET_NAME_PORTFOLIO for storing portfolio files suach as orders and portfolio transactions
+- NAMESPACE_PORTFOLIO for storing portfolio files such as orders and portfolio transactions
 
 *GCE environment only:*
 - GOOGLE_FUNCTION_SOURCE:

@@ -1,12 +1,9 @@
-import io
 import json
 import base64
-import logging
 
 from typing import Dict
 
-from util import json_serial
-from google.cloud import storage
+from google.cloud import datastore
 from msgstore import FieldStoreFile
 
 
@@ -33,20 +30,14 @@ def store_file(event: Dict, context):
         return
 
     message = json.loads(base64.b64decode(event["data"]).decode('utf-8'))
-    filepath = message[FieldStoreFile.FILENAME.value]
-    path_items = filepath.split('/')
-    filename = path_items[-1]
-    file_prefix = '/'.join(path_items[:-1])
+
+    filename = message[FieldStoreFile.FILENAME.value]
     content = message[FieldStoreFile.CONTENT.value]
-    bucket_name = message[FieldStoreFile.BUCKET_NAME.value]
+    namespace = message[FieldStoreFile.NAMESPACE.value]
+    kind = message[FieldStoreFile.KIND.value]
+    exchange = message[FieldStoreFile.EXCHANGE.value]
 
-    storage_client = storage.Client()
-
-    blobs = storage_client.list_blobs(bucket_name, prefix=file_prefix, delimiter='/')
-    if len([blob for blob in blobs if blob.name == filename]) > 0:
-        logging.error('file "{}" already found in bucket'.format(filepath))
-        return
-
-    bucket = storage_client.bucket(bucket_name)
-    blob = bucket.blob(filepath)
-    blob.upload_from_file(io.StringIO(json.dumps(content, default=json_serial)))
+    client = datastore.Client(namespace)
+    entity = datastore.Entity(key=client.key(FieldStoreFile.KIND.value, kind, FieldStoreFile.EXCHANGE.value, exchange, FieldStoreFile.FILENAME.value, filename))
+    entity.update(content)
+    client.put(entity)
