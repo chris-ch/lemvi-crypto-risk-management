@@ -10,6 +10,7 @@ from flask.json import JSONEncoder
 
 import agg
 from msgstore import FieldStoreFile, TopicId
+from util import json_serial
 
 
 def assert_env(env_name: str) -> str:
@@ -39,14 +40,6 @@ def parse_date(yyyymmdd: str) -> date:
         year, month, day = yyyymmdd.split('-')[:3]
 
     return date(int(year), int(month), int(day))
-
-
-def json_serial(obj):
-    """JSON serializer for objects not serializable by default json code"""
-
-    if isinstance(obj, (datetime, date)):
-        return obj.isoformat()
-    raise TypeError('Type %s not serializable' % type(obj))
 
 
 def load_bitmex_wallet_data(request: flask.Request):

@@ -5,6 +5,7 @@ import logging
 
 from typing import Dict
 
+from util import json_serial
 from google.cloud import storage
 from msgstore import FieldStoreFile
 
@@ -48,4 +49,4 @@ def store_file(event: Dict, context):
 
     bucket = storage_client.bucket(bucket_name)
     blob = bucket.blob(filepath)
-    blob.upload_from_file(io.StringIO(content))
+    blob.upload_from_file(io.StringIO(json.dumps(content, default=json_serial)))

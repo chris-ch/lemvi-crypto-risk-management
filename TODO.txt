@@ -1,5 +1,10 @@
 - use secrets in GC
-- add Sub trigger
-- store orders with Cloud Storage
+- check latest update in GC Storage and use it for since-date
+- extend to wallet data
 - extend to Deribit
 - extend to OKex
+- check dev mode for Google Cloud
+
+Done:
+- add Sub trigger
+- store orders with Cloud Storage
