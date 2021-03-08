@@ -1,4 +1,5 @@
-google-cloud-pubsub
+google-cloud-pubsub >= 2.4.0
+google-cloud-storage >= 1.36.1
 bravado >= 11.0.3
 python_dateutil >= 2.5.3
 setuptools >= 21.0.0

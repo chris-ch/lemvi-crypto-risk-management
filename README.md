@@ -13,7 +13,9 @@ Following environment variables are required:
 - BUCKET_NAME_PORTFOLIO for storing portfolio files suach as orders and portfolio transactions
 
 *GCE environment only:*
-- GOOGLE_FUNCTION_SOURCE: entrypoints.py
+- GOOGLE_FUNCTION_SOURCE:
+  - entrypoints.py for HTTP endpoints
+  - subscribers.py for PubSub subscribers
 
 ## Topic Ids
 - job-order-data-import
