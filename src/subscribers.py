@@ -6,11 +6,10 @@ import logging
 from typing import Dict
 
 from google.cloud import storage
-from google.cloud.functions import Context
 from msgstore import FieldStoreFile
 
 
-def store_file(event: Dict, context: Context):
+def store_file(event: Dict, context):
     """Background Cloud Function to be triggered by Pub/Sub.
     Example data:
     {
