@@ -9,6 +9,7 @@ from flask import current_app
 from flask.json import JSONEncoder
 
 import agg
+from msgstore import FieldStoreFile, TopicId
 
 
 def assert_env(env_name: str) -> str:
@@ -60,6 +61,7 @@ def load_bitmex_wallet_data(request: flask.Request):
     if 'since-date' in request_json:
         since_date = parse_date(request_json['since-date'])
 
+    bucket_name_portfolio = assert_env('BUCKET_NAME_PORTFOLIO')
     api_access_key = assert_env('BITMEX_API_ACCESS_KEY')
     api_secret_key = assert_env('BITMEX_API_SECRET_KEY')
     google_cloud_project = assert_env('GOOGLE_CLOUD_PROJECT')
@@ -67,13 +69,18 @@ def load_bitmex_wallet_data(request: flask.Request):
     results = agg.bitmex_load_wallet_history(client, since_date)
     count = 0
     publisher = pubsub_v1.PublisherClient()
-    topic_path = publisher.topic_path(google_cloud_project, 'job-wallet-data-import')
+    topic_path = publisher.topic_path(google_cloud_project, TopicId.JOB_WALLET_DATA_IMPORT.value)
 
     for result in results:
         print(result)
         count += 1
         filename = create_transaction_filename(result['transactID'], 'bitmex', result['transactTime'], result['account'], result['currency'], result['address'], result['transactType'], result['transactStatus'])
-        future = publisher.publish(topic_path, json.dumps({'filename': filename, 'data': result}, default=json_serial).encode('utf-8'), origin='load_bitmex_wallet_data')
+        message = {
+            FieldStoreFile.FILENAME.value: filename,
+            FieldStoreFile.CONTENT.value: result,
+            FieldStoreFile.BUCKET_NAME.value: bucket_name_portfolio
+        }
+        future = publisher.publish(topic_path, json.dumps(message, default=json_serial).encode('utf-8'), origin='load_bitmex_wallet_data')
         future.result()
 
     return flask.jsonify(count=count)
@@ -91,6 +98,7 @@ def load_bitmex_orders_data(request: flask.Request):
     if 'since-date' in request_json:
         since_date = parse_date(request_json['since-date'])
 
+    bucket_name_portfolio = assert_env('BUCKET_NAME_PORTFOLIO')
     api_access_key = assert_env('BITMEX_API_ACCESS_KEY')
     api_secret_key = assert_env('BITMEX_API_SECRET_KEY')
     google_cloud_project = assert_env('GOOGLE_CLOUD_PROJECT')
@@ -99,12 +107,17 @@ def load_bitmex_orders_data(request: flask.Request):
     results = agg.bitmex_load_orders(client, since_date)
     count = 0
     publisher = pubsub_v1.PublisherClient()
-    topic_path = publisher.topic_path(google_cloud_project, 'job-order-data-import')
+    topic_path = publisher.topic_path(google_cloud_project, TopicId.JOB_ORDER_DATA_IMPORT.value)
 
     for result in results:
         count += 1
         filename = create_order_filename(result['orderID'], 'bitmex', result['transactTime'], result['account'], result['symbol'], result['side'], result['currency'], result['settlCurrency'], result['ordStatus'])
-        future = publisher.publish(topic_path, json.dumps({'filename': filename, 'data': result}, default=json_serial).encode('utf-8'), origin='load_bitmex_orders_data')
+        message = {
+            FieldStoreFile.FILENAME.value: filename,
+            FieldStoreFile.CONTENT.value: result,
+            FieldStoreFile.BUCKET_NAME.value: bucket_name_portfolio
+        }
+        future = publisher.publish(topic_path, json.dumps(message, default=json_serial).encode('utf-8'), origin='load_bitmex_orders_data')
         future.result()
 
     return flask.jsonify(count=count)
