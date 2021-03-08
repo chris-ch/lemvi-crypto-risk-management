@@ -1,5 +1,6 @@
 import json
 import base64
+import logging
 
 from typing import Dict
 
@@ -34,10 +35,14 @@ def store_file(event: Dict, context):
     filename = message[FieldStoreFile.FILENAME.value]
     content = message[FieldStoreFile.CONTENT.value]
     namespace = message[FieldStoreFile.NAMESPACE.value]
-    kind = message[FieldStoreFile.KIND.value]
+    source = message[FieldStoreFile.SOURCE.value]
     exchange = message[FieldStoreFile.EXCHANGE.value]
 
     client = datastore.Client(namespace=namespace)
-    entity = datastore.Entity(key=client.key(FieldStoreFile.KIND.value, kind, FieldStoreFile.EXCHANGE.value, exchange, FieldStoreFile.FILENAME.value, filename))
-    entity.update(content)
-    client.put(entity)
+
+    with client.transaction():
+        entity = datastore.Entity(key=client.key(FieldStoreFile.SOURCE.value, source, FieldStoreFile.EXCHANGE.value, exchange, FieldStoreFile.FILENAME.value, filename))
+        entity.update(content)
+        client.put(entity)
+
+    logging.info('saved entity using key {}={}/{}={}/{}={}'.format(FieldStoreFile.SOURCE.value, source, FieldStoreFile.EXCHANGE.value, exchange, FieldStoreFile.FILENAME.value, filename))

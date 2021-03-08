@@ -18,3 +18,6 @@ class Client(object):
 
     def put(self, entity):
         pass
+
+    def transaction(self):
+        pass

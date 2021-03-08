@@ -96,7 +96,7 @@ def store_results(results: Iterable[Dict], exchange: str, topic_id: str, kind: s
             FieldStoreFile.FILENAME.value: filename,
             FieldStoreFile.CONTENT.value: result,
             FieldStoreFile.NAMESPACE.value: namespace_portfolio,
-            FieldStoreFile.KIND.value: kind,
+            FieldStoreFile.SOURCE.value: kind,
             FieldStoreFile.EXCHANGE.value: exchange
         }
         future = publisher.publish(topic_path, json.dumps(message, default=json_serial).encode('utf-8'), origin='load_bitmex_data')

@@ -5,7 +5,7 @@ class FieldStoreFile(Enum):
     FILENAME = 'filename'
     CONTENT = 'content'
     NAMESPACE = 'namespace'
-    KIND = 'kind'
+    SOURCE = 'source'
     EXCHANGE = 'exchange'
 
 
