@@ -11,8 +11,13 @@ from msgstore import FieldStoreFile
 
 def store_file(event: Dict, context):
     """Background Cloud Function to be triggered by Pub/Sub.
-    Example data:
+    Example event:
     {
+    "data": {
+            "filename": "abcd",
+            "buket-name": "xyz",
+            "content": {"data1": "dummy"}
+        }
     }
 
     Args:
@@ -26,13 +31,13 @@ def store_file(event: Dict, context):
     if "data" not in event:
         return
 
-    message = json.loads(base64.b64decode(event['data']).decode('utf-8'))
-    filepath = message[FieldStoreFile.FILENAME]
+    message = json.loads(base64.b64decode(event["data"]).decode('utf-8'))
+    filepath = message[FieldStoreFile.FILENAME.value]
     path_items = filepath.split('/')
     filename = path_items[-1]
     file_prefix = '/'.join(path_items[:-1])
-    content = message[FieldStoreFile.CONTENT]
-    bucket_name = message[FieldStoreFile.BUCKET_NAME]
+    content = message[FieldStoreFile.CONTENT.value]
+    bucket_name = message[FieldStoreFile.BUCKET_NAME.value]
 
     storage_client = storage.Client()
 
