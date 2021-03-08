@@ -44,7 +44,9 @@ def store_file(event: Dict, context):
     client = datastore.Client(namespace=namespace)
 
     with client.transaction():
-        entity = datastore.Entity(key=client.key(FieldStoreFile.SOURCE.value, source, FieldStoreFile.EXCHANGE.value, exchange, FieldStoreFile.FILENAME.value, filename))
+        source_key = client.key(FieldStoreFile.SOURCE.value, source)
+        exchange_key = client.key(FieldStoreFile.EXCHANGE.value, exchange, parent=source_key)
+        entity = datastore.Entity(key=client.key(FieldStoreFile.FILENAME.value, filename, parent=exchange_key))
         entity.update(content)
         client.put(entity)
 
