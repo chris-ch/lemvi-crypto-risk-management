@@ -58,8 +58,7 @@ def load_bitmex_wallet_data(request: flask.Request):
     operation_key_field = 'transactID'
     operation_timestamp_field = 'transactTime'
     topic_id = TopicId.JOB_WALLET_DATA_IMPORT.value
-    count = import_exchange_data(exchange, operation_key_field, operation_timestamp_field, request_json, since_date,
-                                 source, topic_id)
+    count = import_exchange_data(exchange, operation_key_field, operation_timestamp_field, request_json, source, topic_id, agg.bitmex_load_wallet_history)
     return flask.jsonify(count=count)
 
 
@@ -71,20 +70,18 @@ def load_bitmex_orders_data(request: flask.Request):
         `make_response <https://flask.palletsprojects.com/en/1.1.x/api/#flask.Flask.make_response>`.
     """
     request_json = request.get_json()
-    since_date = None
     exchange = 'bitmex'
     source = 'orders'
     operation_key_field = 'orderID'
     operation_timestamp_field = 'transactTime'
     topic_id = TopicId.JOB_ORDER_DATA_IMPORT.value
 
-    count = import_exchange_data(exchange, operation_key_field, operation_timestamp_field, request_json, since_date,
-                                 source, topic_id)
+    count = import_exchange_data(exchange, operation_key_field, operation_timestamp_field, request_json, source, topic_id, agg.bitmex_load_orders)
     return flask.jsonify(count=count)
 
 
-def import_exchange_data(exchange, operation_key_field, operation_timestamp_field, request_json, since_date, source,
-                         topic_id):
+def import_exchange_data(exchange, operation_key_field, operation_timestamp_field, request_json, source, topic_id, func):
+    since_date = None
     if 'since-date' in request_json:
         since_date = parse_date(request_json['since-date'])
 
@@ -106,7 +103,7 @@ def import_exchange_data(exchange, operation_key_field, operation_timestamp_fiel
     api_access_key = assert_env('BITMEX_API_ACCESS_KEY')
     api_secret_key = assert_env('BITMEX_API_SECRET_KEY')
     client = agg.bitmex_client(api_access_key, api_secret_key)
-    results = agg.bitmex_load_wallet_history(client, since_date)
+    results = func(client, since_date)
     count = store_results(results, exchange, topic_id, source, operation_key_field, operation_timestamp_field)
     return count
 
