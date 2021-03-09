@@ -13,8 +13,10 @@ def store_file(event: Dict, context):
     Example event:
     {
     "data": {
-            "filename": "abcd",
-            "buket-name": "xyz",
+            "Operation": "abcd",
+            "Source": "abcd",
+            "Exchange": "abcd",
+            "namespace": "xyz",
             "content": {"data1": "dummy"}
         }
     }
@@ -29,7 +31,7 @@ def store_file(event: Dict, context):
     """
     logging_client = logging.Client()
     logger = logging_client.logger('store_file')
-    if "data" not in event:
+    if 'data' not in event:
         return
 
     logger.log_text('loading message')

@@ -1,6 +1,5 @@
 import json
 import os
-import logging
 from google.cloud import pubsub_v1
 from google.cloud import datastore
 from datetime import date, datetime
@@ -52,7 +51,6 @@ def load_bitmex_wallet_data(request: flask.Request):
         `make_response <https://flask.palletsprojects.com/en/1.1.x/api/#flask.Flask.make_response>`.
     """
     request_json = request.get_json()
-    since_date = None
     exchange = 'bitmex'
     source = 'transactions'
     operation_key_field = 'transactID'
@@ -96,9 +94,9 @@ def import_exchange_data(exchange, operation_key_field, operation_timestamp_fiel
         latest_entries = list(query.fetch(limit=1))
         if len(latest_entries) > 0:
             latest_entry = latest_entries[0]
-            logging.info('loaded latest entry: {}'.format(latest_entry))
+            print('loaded latest entry: {}'.format(latest_entry))
             since_date = parse_iso8601(latest_entry[operation_timestamp_field])
-            logging.info('importing since date {}'.format(since_date))
+            print('importing since date {}'.format(since_date))
 
     api_access_key = assert_env('BITMEX_API_ACCESS_KEY')
     api_secret_key = assert_env('BITMEX_API_SECRET_KEY')
