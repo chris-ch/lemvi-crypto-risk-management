@@ -7,3 +7,7 @@ def json_serial(obj):
     if isinstance(obj, (datetime, date)):
         return obj.isoformat()
     raise TypeError('Type %s not serializable' % type(obj))
+
+
+def parse_iso8601(date_str: str) -> datetime:
+    return datetime.fromisoformat(date_str)

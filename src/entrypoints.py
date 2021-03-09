@@ -12,7 +12,7 @@ from flask.json import JSONEncoder
 
 import agg
 from msgstore import FieldStoreFile, TopicId, FieldStoreKind
-from util import json_serial
+from util import json_serial, parse_iso8601
 
 
 def assert_env(env_name: str) -> str:
@@ -100,7 +100,7 @@ def import_exchange_data(exchange, operation_key_field, operation_timestamp_fiel
         if len(latest_entries) > 0:
             latest_entry = latest_entries[0]
             logging.info('loaded latest entry: {}'.format(latest_entry))
-            since_date = datetime.strptime(latest_entry[operation_timestamp_field], '%Y-%m-%d %H:%M:%S.%f').date()
+            since_date = parse_iso8601(latest_entry[operation_timestamp_field])
             logging.info('importing since date {}'.format(since_date))
 
     api_access_key = assert_env('BITMEX_API_ACCESS_KEY')
