@@ -90,7 +90,8 @@ def bitmex_load_orders(client: SwaggerClient, since_date: date=None) -> Generato
             raise ConnectionError('failed to load wallet history: %s %s %s' % (status.status_code, status.text, status.reason))
 
         for result in results:
-            if not since_date or result['transactTime'] >= datetime.combine(since_date, datetime.min.time(), tzinfo=result['transactTime'].tzinfo):
+            transact_time = result['transactTime']
+            if not since_date or transact_time >= datetime.combine(since_date, datetime.min.time(), tzinfo=transact_time.tzinfo):
                 yield result
 
             else:

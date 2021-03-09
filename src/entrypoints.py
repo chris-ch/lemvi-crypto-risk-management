@@ -72,6 +72,8 @@ def load_bitmex_orders_data(request: flask.Request):
     """
     request_json = request.get_json()
     since_date = None
+    exchange = 'bitmex'
+    source = 'orders'
     if 'since-date' in request_json:
         since_date = parse_date(request_json['since-date'])
 
@@ -79,14 +81,21 @@ def load_bitmex_orders_data(request: flask.Request):
         # finds latest item stored in db
         namespace = assert_env('NAMESPACE_PORTFOLIO')
         client = datastore.Client(namespace=namespace)
-        query = client.query(kind=FieldStoreFile.OPERATION.value)
+        source_key = client.key(FieldStoreKind.SOURCE.value, source)
+        exchange_key = client.key(FieldStoreKind.EXCHANGE.value, exchange, parent=source_key)
+        query = client.query(kind=FieldStoreKind.OPERATION.value).ancestor(exchange_key)
+        query.order = ['-' + 'transactTime']
+        latest_entries = list(query.fetch(limit=1))
+        if len(latest_entries) > 0:
+            latest_entry = latest_entries[0]
+            since_date = latest_entry['transactTime'].date()
 
     api_access_key = assert_env('BITMEX_API_ACCESS_KEY')
     api_secret_key = assert_env('BITMEX_API_SECRET_KEY')
 
     client = agg.bitmex_client(api_access_key, api_secret_key)
     results = agg.bitmex_load_orders(client, since_date)
-    count = store_results(results, 'bitmex', TopicId.JOB_ORDER_DATA_IMPORT.value, 'orders', 'orderID', 'transactTime')
+    count = store_results(results, exchange, TopicId.JOB_ORDER_DATA_IMPORT.value, source, 'orderID', 'transactTime')
     return flask.jsonify(count=count)
 
 

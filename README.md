@@ -3,6 +3,9 @@
 ## Project installation
 > pip -r install local-requirements.txt
 
+## Deploying indices on DataStore
+> gcloud app deploy resources/index.yaml
+
 ## Prerequisites
 Following environment variables are required:
 - BITMEX_API_SECRET_KEY, BITMEX_API_ACCESS_KEY

@@ -131,4 +131,4 @@ dmypy.json
 .idea
 
 logs/
-/secrets2.txt
+/secrets.txt
