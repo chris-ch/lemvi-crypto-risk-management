@@ -116,6 +116,9 @@ def store_results(results: Iterable[Dict], exchange: str, topic_id: str, source:
     topic_path = publisher.topic_path(google_cloud_project, topic_id)
     for result in results:
         count += 1
+        if filename_part1 not in result or filename_part2 not in result:
+            raise AttributeError('key {} or key {} missing from result: {}'.format(filename_part1, filename_part2, result))
+
         operation_key = create_filename(result[filename_part1], result[filename_part2])
         message = {
             FieldStoreFile.CONTENT.value: result,
