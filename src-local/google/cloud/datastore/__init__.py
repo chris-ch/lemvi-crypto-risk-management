@@ -22,5 +22,5 @@ class Client(object):
     def transaction(self):
         pass
 
-    def query(self, kind):
+    def query(self, *args, **kwargs):
         pass

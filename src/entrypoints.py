@@ -1,5 +1,6 @@
 import json
 import os
+import logging
 from google.cloud import pubsub_v1
 from google.cloud import datastore
 from datetime import date, datetime
@@ -93,12 +94,14 @@ def import_exchange_data(exchange, operation_key_field, operation_timestamp_fiel
         client = datastore.Client(namespace=namespace)
         source_key = client.key(FieldStoreKind.SOURCE.value, source)
         exchange_key = client.key(FieldStoreKind.EXCHANGE.value, exchange, parent=source_key)
-        query = client.query(kind=FieldStoreKind.OPERATION.value).ancestor(exchange_key)
+        query = client.query(kind=FieldStoreKind.OPERATION.value, ancestor=exchange_key)
         query.order = ['-' + operation_timestamp_field]
         latest_entries = list(query.fetch(limit=1))
         if len(latest_entries) > 0:
             latest_entry = latest_entries[0]
             since_date = latest_entry[operation_timestamp_field].date()
+            logging.info('importing since date {}'.format(since_date))
+
     api_access_key = assert_env('BITMEX_API_ACCESS_KEY')
     api_secret_key = assert_env('BITMEX_API_SECRET_KEY')
     client = agg.bitmex_client(api_access_key, api_secret_key)
