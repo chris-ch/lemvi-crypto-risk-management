@@ -99,6 +99,7 @@ def import_exchange_data(exchange, operation_key_field, operation_timestamp_fiel
         latest_entries = list(query.fetch(limit=1))
         if len(latest_entries) > 0:
             latest_entry = latest_entries[0]
+            logging.info('loaded latest entry: {}'.format(latest_entry))
             since_date = latest_entry[operation_timestamp_field].date()
             logging.info('importing since date {}'.format(since_date))
 
