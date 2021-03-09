@@ -100,7 +100,7 @@ def import_exchange_data(exchange, operation_key_field, operation_timestamp_fiel
         if len(latest_entries) > 0:
             latest_entry = latest_entries[0]
             logging.info('loaded latest entry: {}'.format(latest_entry))
-            since_date = latest_entry[operation_timestamp_field].date()
+            since_date = datetime.strptime(latest_entry[operation_timestamp_field], '%Y-%m-%d %H:%M:%S.%f').date()
             logging.info('importing since date {}'.format(since_date))
 
     api_access_key = assert_env('BITMEX_API_ACCESS_KEY')
