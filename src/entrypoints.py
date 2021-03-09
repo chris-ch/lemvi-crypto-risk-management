@@ -52,14 +52,13 @@ def load_bitmex_wallet_data(request: flask.Request):
     """
     request_json = request.get_json()
     since_date = None
-    if 'since-date' in request_json:
-        since_date = parse_date(request_json['since-date'])
-
-    api_access_key = assert_env('BITMEX_API_ACCESS_KEY')
-    api_secret_key = assert_env('BITMEX_API_SECRET_KEY')
-    client = agg.bitmex_client(api_access_key, api_secret_key)
-    results = agg.bitmex_load_wallet_history(client, since_date)
-    count = store_results(results, 'bitmex', TopicId.JOB_WALLET_DATA_IMPORT.value, 'transactions', 'transactID', 'transactTime')
+    exchange = 'bitmex'
+    source = 'transactions'
+    operation_key_field = 'transactID'
+    operation_timestamp_field = 'transactTime'
+    topic_id = TopicId.JOB_WALLET_DATA_IMPORT.value
+    count = import_exchange_data(exchange, operation_key_field, operation_timestamp_field, request_json, since_date,
+                                 source, topic_id)
     return flask.jsonify(count=count)
 
 
@@ -74,6 +73,17 @@ def load_bitmex_orders_data(request: flask.Request):
     since_date = None
     exchange = 'bitmex'
     source = 'orders'
+    operation_key_field = 'orderID'
+    operation_timestamp_field = 'transactTime'
+    topic_id = TopicId.JOB_ORDER_DATA_IMPORT.value
+
+    count = import_exchange_data(exchange, operation_key_field, operation_timestamp_field, request_json, since_date,
+                                 source, topic_id)
+    return flask.jsonify(count=count)
+
+
+def import_exchange_data(exchange, operation_key_field, operation_timestamp_field, request_json, since_date, source,
+                         topic_id):
     if 'since-date' in request_json:
         since_date = parse_date(request_json['since-date'])
 
@@ -84,19 +94,17 @@ def load_bitmex_orders_data(request: flask.Request):
         source_key = client.key(FieldStoreKind.SOURCE.value, source)
         exchange_key = client.key(FieldStoreKind.EXCHANGE.value, exchange, parent=source_key)
         query = client.query(kind=FieldStoreKind.OPERATION.value).ancestor(exchange_key)
-        query.order = ['-' + 'transactTime']
+        query.order = ['-' + operation_timestamp_field]
         latest_entries = list(query.fetch(limit=1))
         if len(latest_entries) > 0:
             latest_entry = latest_entries[0]
-            since_date = latest_entry['transactTime'].date()
-
+            since_date = latest_entry[operation_timestamp_field].date()
     api_access_key = assert_env('BITMEX_API_ACCESS_KEY')
     api_secret_key = assert_env('BITMEX_API_SECRET_KEY')
-
     client = agg.bitmex_client(api_access_key, api_secret_key)
-    results = agg.bitmex_load_orders(client, since_date)
-    count = store_results(results, exchange, TopicId.JOB_ORDER_DATA_IMPORT.value, source, 'orderID', 'transactTime')
-    return flask.jsonify(count=count)
+    results = agg.bitmex_load_wallet_history(client, since_date)
+    count = store_results(results, exchange, topic_id, source, operation_key_field, operation_timestamp_field)
+    return count
 
 
 def store_results(results: Iterable[Dict], exchange: str, topic_id: str, source: str, filename_part1: str, filename_part2: str):
