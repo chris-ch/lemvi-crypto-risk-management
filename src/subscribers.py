@@ -5,7 +5,7 @@ from google.cloud import logging
 from typing import Dict
 
 from google.cloud import datastore
-from msgstore import FieldStoreFile
+from msgstore import FieldStoreFile, FieldStoreKind
 
 
 def store_file(event: Dict, context):
@@ -35,19 +35,19 @@ def store_file(event: Dict, context):
     logger.log_text('loading message')
     message = json.loads(base64.b64decode(event["data"]).decode('utf-8'))
 
-    filename = message[FieldStoreFile.FILENAME.value]
     content = message[FieldStoreFile.CONTENT.value]
     namespace = message[FieldStoreFile.NAMESPACE.value]
-    source = message[FieldStoreFile.SOURCE.value]
-    exchange = message[FieldStoreFile.EXCHANGE.value]
+    source = message[FieldStoreKind.SOURCE.value]
+    exchange = message[FieldStoreKind.EXCHANGE.value]
+    operation_key = message[FieldStoreKind.OPERATION.value]
 
     client = datastore.Client(namespace=namespace)
 
     with client.transaction():
-        source_key = client.key(FieldStoreFile.SOURCE.value, source)
-        exchange_key = client.key(FieldStoreFile.EXCHANGE.value, exchange, parent=source_key)
-        entity = datastore.Entity(key=client.key(FieldStoreFile.FILENAME.value, filename, parent=exchange_key))
+        source_key = client.key(FieldStoreKind.SOURCE.value, source)
+        exchange_key = client.key(FieldStoreKind.EXCHANGE.value, exchange, parent=source_key)
+        entity = datastore.Entity(key=client.key(FieldStoreKind.OPERATION.value, operation_key, parent=exchange_key))
         entity.update(content)
         client.put(entity)
 
-    logger.log_text('saved entity using key {}={}/{}={}/{}={}'.format(FieldStoreFile.SOURCE.value, source, FieldStoreFile.EXCHANGE.value, exchange, FieldStoreFile.FILENAME.value, filename))
+    logger.log_text('saved entity using key {}={}/{}={}/{}={}'.format(FieldStoreKind.SOURCE.value, source, FieldStoreKind.EXCHANGE.value, exchange, FieldStoreKind.OPERATION.value, operation_key))

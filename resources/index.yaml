@@ -1,0 +1,8 @@
+indexes:
+
+- kind: Operation
+  ancestor: yes
+  properties:
+  - name: transactTime
+    direction: desc
+

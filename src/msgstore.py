@@ -2,12 +2,14 @@ from enum import Enum
 
 
 class FieldStoreFile(Enum):
-    FILENAME = 'filename'
     CONTENT = 'content'
     NAMESPACE = 'namespace'
-    SOURCE = 'source'
-    EXCHANGE = 'exchange'
 
+
+class FieldStoreKind(Enum):
+    SOURCE = 'Source'
+    EXCHANGE = 'Exchange'
+    OPERATION = 'Operation'
 
 class TopicId(Enum):
     JOB_ORDER_DATA_IMPORT = 'job-order-data-import'

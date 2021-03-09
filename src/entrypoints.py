@@ -1,6 +1,7 @@
 import json
 import os
 from google.cloud import pubsub_v1
+from google.cloud import datastore
 from datetime import date, datetime
 from typing import Any, Iterable, Dict
 
@@ -9,7 +10,7 @@ from flask import current_app
 from flask.json import JSONEncoder
 
 import agg
-from msgstore import FieldStoreFile, TopicId
+from msgstore import FieldStoreFile, TopicId, FieldStoreKind
 from util import json_serial
 
 
@@ -74,6 +75,12 @@ def load_bitmex_orders_data(request: flask.Request):
     if 'since-date' in request_json:
         since_date = parse_date(request_json['since-date'])
 
+    else:
+        # finds latest item stored in db
+        namespace = assert_env('NAMESPACE_PORTFOLIO')
+        client = datastore.Client(namespace=namespace)
+        query = client.query(kind=FieldStoreFile.OPERATION.value)
+
     api_access_key = assert_env('BITMEX_API_ACCESS_KEY')
     api_secret_key = assert_env('BITMEX_API_SECRET_KEY')
 
@@ -83,7 +90,7 @@ def load_bitmex_orders_data(request: flask.Request):
     return flask.jsonify(count=count)
 
 
-def store_results(results: Iterable[Dict], exchange: str, topic_id: str, kind: str, filename_part1: str, filename_part2: str):
+def store_results(results: Iterable[Dict], exchange: str, topic_id: str, source: str, filename_part1: str, filename_part2: str):
     google_cloud_project = assert_env('GOOGLE_CLOUD_PROJECT')
     namespace_portfolio = assert_env('NAMESPACE_PORTFOLIO')
     count = 0
@@ -91,13 +98,13 @@ def store_results(results: Iterable[Dict], exchange: str, topic_id: str, kind: s
     topic_path = publisher.topic_path(google_cloud_project, topic_id)
     for result in results:
         count += 1
-        filename = create_filename(result[filename_part1], result[filename_part2])
+        operation_key = create_filename(result[filename_part1], result[filename_part2])
         message = {
-            FieldStoreFile.FILENAME.value: filename,
             FieldStoreFile.CONTENT.value: result,
             FieldStoreFile.NAMESPACE.value: namespace_portfolio,
-            FieldStoreFile.SOURCE.value: kind,
-            FieldStoreFile.EXCHANGE.value: exchange
+            FieldStoreKind.SOURCE.value: source,
+            FieldStoreKind.EXCHANGE.value: exchange,
+            FieldStoreKind.OPERATION.value: operation_key
         }
         future = publisher.publish(topic_path, json.dumps(message, default=json_serial).encode('utf-8'), origin='load_bitmex_data')
         future.result()
