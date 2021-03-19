@@ -80,7 +80,7 @@ def load_bitmex_orders_data(request: flask.Request):
 
 def import_exchange_data(exchange, operation_key_field, operation_timestamp_field, request_json, source, topic_id, func):
     since_date = None
-    if 'since-date' in request_json:
+    if request_json and 'since-date' in request_json:
         since_date = parse_date(request_json['since-date'])
 
     else:
